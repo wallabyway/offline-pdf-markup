@@ -26,8 +26,8 @@
   <div id="forgeViewer"></div>
 </body>
 
-<link rel="stylesheet" href="https://developer.api.autodesk.com/viewingservice/v1/viewers/style.min.css?v=v6.3" type="text/css">
-<script language="JavaScript" src="https://developer.api.autodesk.com/viewingservice/v1/viewers/viewer3D.min.js?v=v6.3"></script>
+<link rel="stylesheet" href="https://developer.api.autodesk.com/modelderivative/v2/viewers/6.*/style.min.css" type="text/css">
+<script language="JavaScript" src="https://developer.api.autodesk.com/modelderivative/v2/viewers/6.*/viewer3D.min.js"></script>
 <script>
 
 let viewer;
@@ -45,21 +45,21 @@ function initializeViewer(pdf) {
         useADP: false
     }
 
-    Autodesk.Viewing.Initializer(options, function () {
-      viewer = new Autodesk.Viewing.Private.GuiViewer3D(document.getElementById('forgeViewer'), {});
+    Autodesk.Viewing.Initializer(options, () => {
+      viewer = new Autodesk.Viewing.Private.GuiViewer3D(document.getElementById('forgeViewer'));
       viewer.setTheme("light-theme");
       viewer.start();
       if (!pdf) return;
-      viewer.loadExtension('Autodesk.PDF').then(function(){
+      viewer.loadExtension('Autodesk.PDF').then( () => {
             viewer.loadModel(pdf, viewer);
             viewer.loadExtension("Autodesk.Viewing.MarkupsCore")
             viewer.loadExtension("Autodesk.Viewing.MarkupsGui")
-        });
+      });
     });
 }
 
-initializeViewer('pdfs/qcad1.pdf');
-//if ('serviceWorker' in navigator)
-  //navigator.serviceWorker.register('offline-worker.js');
+if ('serviceWorker' in navigator)
+  navigator.serviceWorker.register('offline-worker.js');
 
+initializeViewer('pdfs/qcad1.pdf');
 </script>
