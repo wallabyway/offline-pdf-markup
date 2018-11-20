@@ -1,0 +1,65 @@
+<head>
+	<meta charset="utf-8" />
+	<title>fast PDF viewer with markup and offline support</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <link rel="icon" href="data:,">
+	<link rel="stylesheet" href="./skeleton.min.css">
+  <style> .lmv-markup-gui-toolbar {background-color: rgba(200,230,255,0.85)}</style>
+</head>
+
+
+<body style="margin:0; overflow-y: hidden;">
+
+  <div class="container">
+    <nav class="navbar">
+      <div class="container">
+        <ul class="navbar-list">
+          <li class="navbar-item"><img class="navbar-img" src="logo.png"/></li>
+          <li class="navbar-item"><button onClick="initializeViewer('pdfs/qcad1.pdf')" class="navbar-button button-primary">floor1.pdf</button></li>
+          <li class="navbar-item"><button onClick="initializeViewer('pdfs/wood.pdf')" class="navbar-button button-primary">Wood.pdf</button></li>
+          <li class="navbar-item"><button onClick="initializeViewer('pdfs/qcad3.pdf')" class="navbar-button button-primary">section.pdf</button></li>
+          <li class="navbar-itemr mobile"><a class="navbar-link" href="https://github.com/wallabyway/multimodel-demo">Github</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <div id="forgeViewer"></div>
+</body>
+
+<link rel="stylesheet" href="https://developer.api.autodesk.com/viewingservice/v1/viewers/style.min.css?v=v6.3" type="text/css">
+<script language="JavaScript" src="https://developer.api.autodesk.com/viewingservice/v1/viewers/viewer3D.min.js?v=v6.3"></script>
+<script>
+
+let viewer;
+
+function initializeViewer(pdf) {
+    if (viewer) {
+      console.log('loading');
+      viewer.impl.unloadCurrentModel()
+      viewer.loadModel(pdf, viewer);
+      return;
+    }
+
+    var options = {
+        env: "Local",
+        useADP: false
+    }
+
+    Autodesk.Viewing.Initializer(options, function () {
+      viewer = new Autodesk.Viewing.Private.GuiViewer3D(document.getElementById('forgeViewer'), {});
+      viewer.setTheme("light-theme");
+      viewer.start();
+      if (!pdf) return;
+      viewer.loadExtension('Autodesk.PDF').then(function(){
+            viewer.loadModel(pdf, viewer);
+            viewer.loadExtension("Autodesk.Viewing.MarkupsCore")
+            viewer.loadExtension("Autodesk.Viewing.MarkupsGui")
+        });
+    });
+}
+
+initializeViewer('pdfs/qcad1.pdf');
+if ('serviceWorker' in navigator)
+  navigator.serviceWorker.register('offline-worker.js');
+
+</script>
