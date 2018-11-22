@@ -1,5 +1,5 @@
 # offline-pdf-markup
-offline-pdf-markup
+offline-pdf-markup DEMO: https://wallabyway.github.io/offline-pdf-markup/
 
 Blog post:  https://forge.autodesk.com/blog/fast-pdf-viewingmarkup-inside-forge-viewer
 
