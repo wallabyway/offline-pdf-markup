@@ -37,7 +37,8 @@ function initializeViewer(pdf) {
     if (viewer) {
       console.log('loading');
       viewer.impl.unloadCurrentModel()
-      markup.hide();
+      if (markup) 
+        markup.hide();
       viewer.loadModel(pdf, viewer);
       return;
     }
