@@ -1,7 +1,7 @@
 class StampExtension extends Autodesk.Viewing.Extension {
   async load() {
       await this.viewer.loadExtension('Autodesk.Viewing.MarkupsCore');
-      await this.loadScript('adamn/stamp-markup.js');
+      await this.loadScript('./stamp-markup.js');
       return true;
   }
 
