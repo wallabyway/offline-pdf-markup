@@ -1,0 +1,156 @@
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=no" />
+    <meta charset="utf-8">
+
+    <!-- The Viewer CSS -->
+    <link rel="stylesheet" href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css" type="text/css">
+
+    <!-- Developer CSS -->
+    <style>
+        body {
+            margin: 0;
+        }
+        
+        #MyConytainerDiv {
+            width: 100%;
+            height:100%;
+            position: relative;
+        }
+
+        #MyViewerDiv {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            background-color: #F0F8FF;
+        }
+
+        #svgs {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1;
+            background-color: #F0F8FF;
+        }
+
+        img {
+            width: 40px;
+            height: 40px;
+            padding: 10px;
+        }
+    </style>
+    
+    <title>Showing A360 Shared files</title>
+</head>
+
+<body>
+
+    <!-- The Viewer will be instantiated here -->
+    <div id="MyConytainerDiv">
+        <div id="MyViewerDiv"></div>
+        <div id="svgs">
+            <img src="alarm.svg" onclick="onClick(event)" />
+            <img src="aspect-ratio.svg" onclick="onClick(event)" />
+            <img src="badge-4k.svg" onclick="onClick(event)" />
+            <img src="icon-viewer.svg" onclick="onClick(event)" />
+        </div>
+    </div>
+    
+    <!-- The Viewer JS -->
+    <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.js"></script>
+
+    <script src="StampExtension.js"></script>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+
+    <!-- Developer JS -->
+    <script>
+        // this is the iframe URL that shows up when sharing a model embed on a page
+        var embedURLfromA360 = 'https://autodesk3743.autodesk360.com/shares/public/SH919a0QTf3c32634dcf07b66797ba369695?mode=embed'; // PDF file
+
+        var viewer;
+        var ext;
+
+        function getURN(onURNCallback) {
+            $.get({
+                url: embedURLfromA360.replace('public', 'metadata').replace('mode=embed', ''),
+                dataType: 'json',
+                success: function (metadata) {
+                    if (onURNCallback) {
+                        let urn = btoa(metadata.success.body.urn).replace("/", "_").replace("=", "");
+                        onURNCallback(urn);
+                    }
+                }
+            })
+        }
+
+        function getForgeToken(onTokenCallback) {
+            $.post({
+                url: embedURLfromA360.replace('public', 'sign').replace('mode=embed', 'oauth2=true'),
+                data: '{}',
+                success: function (oauth) {
+                    if (onTokenCallback)
+                        onTokenCallback(oauth.accessToken, oauth.validitySeconds);
+                }
+            });
+        }
+
+        getURN(function (urn) {
+            var options = {
+                env: 'AutodeskProduction',
+                getAccessToken: getForgeToken
+            };
+            var documentId = 'urn:' + urn;
+            Autodesk.Viewing.Initializer(options, function onInitialized() {
+                Autodesk.Viewing.Document.load(documentId, onDocumentLoadSuccess);
+            });
+        });
+
+        /**
+         * Autodesk.Viewing.Document.load() success callback.
+         * Proceeds with model initialization.
+         */
+        function onDocumentLoadSuccess(doc) {
+
+            // A document contains references to 3D and 2D viewables.
+            var viewables = doc.getRoot().search({
+                'type': 'geometry',
+                'role': '2d'
+            }, true);
+            if (viewables.length === 0) {
+                console.error('Document contains no viewables.');
+                return;
+            }
+
+            var viewerDiv = document.getElementById('MyViewerDiv');
+            const config = {
+                extensions: ['StampExtension']
+            };
+            viewer = new Autodesk.Viewing.GuiViewer3D(viewerDiv, config);
+            viewer.start();
+            
+            viewer.loadDocumentNode(doc, viewables[1]).then(async (model1) => {
+                ext = await viewer.getExtension('StampExtension');
+            })
+        }
+
+        function onClick(event) {
+            let t = event.target;
+            fetch(t.src)
+                .then(response => {
+                    console.log(response);
+                    return response.text();
+                })
+                .then(data => {
+                    console.log(data);
+
+                    let temp = document.createElement('div');
+                    temp.innerHTML = data;
+
+                    ext.startDrawing(temp.children[0])
+                })
+        }
+    </script>
+</body>
+</html>
